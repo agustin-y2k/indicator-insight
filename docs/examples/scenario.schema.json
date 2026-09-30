@@ -1,73 +1,296 @@
 {
- "$schema": "https://json-schema.org/draft/2020-12/schema",
- "title": "Indicator Insight Scenario v1 (illustrative)",
- "type": "object",
- "required": [
- "id",
- "version",
- "domain",
- "competencies",
- "evidence",
- "probabilistic_event",
- "resolution_rule"
- ],
- "properties": {
- "id": {
- "type": "string"
- },
- "version": {
- "type": "integer",
- "minimum": 1
- },
- "domain": {
- "type": "string"
- },
- "competencies": {
- "type": "array",
- "items": {
- "type": "string"
- },
- "minItems": 1
- },
- "difficulty": {
- "type": "number",
- "minimum": 0,
- "maximum": 1
- },
- "cutoff_time": {
- "type": [
- "string",
- "null"
- ],
- "format": "date-time"
- },
- "evidence": {
- "type": "array",
- "items": {
- "type": "object"
- }
- },
- "conceptual_item": {
- "type": [
- "object",
- "null"
- ]
- },
- "probabilistic_event": {
- "type": "object",
- "required": [
- "question",
- "outcomes"
- ]
- },
- "resolution_rule": {
- "type": "object"
- },
- "dataset_snapshot_id": {
- "type": [
- "string",
- "null"
- ]
- }
- }
+  "$defs": {
+    "Alternative": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "source_available_at": {
+          "default": [],
+          "items": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "title": "Source Available At",
+          "type": "array"
+        },
+        "alternative_id": {
+          "minLength": 1,
+          "title": "Alternative Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "available_at",
+        "alternative_id"
+      ],
+      "title": "Alternative",
+      "type": "object"
+    },
+    "AvailableText": {
+      "additionalProperties": false,
+      "description": "An adapter's declared availability and source dependencies for visible text.",
+      "properties": {
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "source_available_at": {
+          "default": [],
+          "items": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "title": "Source Available At",
+          "type": "array"
+        }
+      },
+      "required": [
+        "text",
+        "available_at"
+      ],
+      "title": "AvailableText",
+      "type": "object"
+    },
+    "Difficulty": {
+      "additionalProperties": false,
+      "description": "Opaque level in an explicitly named scheme; no numerical scale assumed.",
+      "properties": {
+        "scheme": {
+          "minLength": 1,
+          "title": "Scheme",
+          "type": "string"
+        },
+        "level": {
+          "minLength": 1,
+          "title": "Level",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheme",
+        "level"
+      ],
+      "title": "Difficulty",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "source_available_at": {
+          "default": [],
+          "items": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "title": "Source Available At",
+          "type": "array"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "available_at",
+        "evidence_id"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "ProbabilitySpace": {
+      "additionalProperties": false,
+      "description": "Finite outcome identifiers; scoring and probability submission are separate.",
+      "properties": {
+        "question": {
+          "$ref": "#/$defs/AvailableText"
+        },
+        "outcomes": {
+          "items": {
+            "$ref": "#/$defs/Alternative"
+          },
+          "minItems": 2,
+          "title": "Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "question",
+        "outcomes"
+      ],
+      "title": "ProbabilitySpace",
+      "type": "object"
+    },
+    "ResolutionRule": {
+      "additionalProperties": false,
+      "description": "Private versioned rule reference, interpreted by a future domain adapter.",
+      "properties": {
+        "rule_id": {
+          "minLength": 1,
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "rule_version": {
+          "minLength": 1,
+          "title": "Rule Version",
+          "type": "string"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "rule_version",
+        "description"
+      ],
+      "title": "ResolutionRule",
+      "type": "object"
+    },
+    "ResolutionSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "$ref": "#/$defs/ResolutionRule"
+        },
+        "data": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Data",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rule"
+      ],
+      "title": "ResolutionSpec",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Immutable publication. Content changes have a different reference digest.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "scenario_id": {
+      "minLength": 1,
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "domain": {
+      "minLength": 1,
+      "title": "Domain",
+      "type": "string"
+    },
+    "competencies": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Competencies",
+      "type": "array"
+    },
+    "difficulty": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Difficulty"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "cutoff_time": {
+      "format": "date-time",
+      "title": "Cutoff Time",
+      "type": "string"
+    },
+    "context": {
+      "$ref": "#/$defs/AvailableText"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "alternatives": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Alternative"
+      },
+      "title": "Alternatives",
+      "type": "array"
+    },
+    "probability_space": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProbabilitySpace"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "resolution": {
+      "$ref": "#/$defs/ResolutionSpec"
+    }
+  },
+  "required": [
+    "scenario_id",
+    "version",
+    "domain",
+    "competencies",
+    "cutoff_time",
+    "context",
+    "evidence",
+    "resolution"
+  ],
+  "title": "ScenarioVersion",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
 }
