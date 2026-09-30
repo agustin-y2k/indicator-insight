@@ -1,0 +1,20 @@
+{
+ "participant_id": "PSEUDO-001",
+ "knowledge_state": {
+ "probability_conditional": {
+ "p_mastery": 0.41,
+ "model_version": "bkt-v1"
+ }
+ },
+ "judgment_summary": {
+ "n": 18,
+ "mean_brier": 0.23,
+ "calibration_bias": 0.12,
+ "method_version": "judgment-v1"
+ },
+ "last_adaptation": {
+ "policy": "P2",
+ "policy_version": "p2-v1",
+ "reason": "low mastery + overconfidence + spacing"
+ }
+}

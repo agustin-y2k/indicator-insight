@@ -1,0 +1,73 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "Indicator Insight Scenario v1 (illustrative)",
+ "type": "object",
+ "required": [
+ "id",
+ "version",
+ "domain",
+ "competencies",
+ "evidence",
+ "probabilistic_event",
+ "resolution_rule"
+ ],
+ "properties": {
+ "id": {
+ "type": "string"
+ },
+ "version": {
+ "type": "integer",
+ "minimum": 1
+ },
+ "domain": {
+ "type": "string"
+ },
+ "competencies": {
+ "type": "array",
+ "items": {
+ "type": "string"
+ },
+ "minItems": 1
+ },
+ "difficulty": {
+ "type": "number",
+ "minimum": 0,
+ "maximum": 1
+ },
+ "cutoff_time": {
+ "type": [
+ "string",
+ "null"
+ ],
+ "format": "date-time"
+ },
+ "evidence": {
+ "type": "array",
+ "items": {
+ "type": "object"
+ }
+ },
+ "conceptual_item": {
+ "type": [
+ "object",
+ "null"
+ ]
+ },
+ "probabilistic_event": {
+ "type": "object",
+ "required": [
+ "question",
+ "outcomes"
+ ]
+ },
+ "resolution_rule": {
+ "type": "object"
+ },
+ "dataset_snapshot_id": {
+ "type": [
+ "string",
+ "null"
+ ]
+ }
+ }
+}
