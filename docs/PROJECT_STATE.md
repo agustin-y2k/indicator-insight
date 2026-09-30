@@ -1,15 +1,15 @@
 # Project State
 
-**Baseline:** II-6 development infrastructure on `feature/II-6-repository-skeleton`.
-**Status:** M1 technical foundation validated locally and ready for review; not merged.
+**Baseline:** Executable II-6 development infrastructure on `develop` at `895b594`.
+**Status:** II-6 Done; [PR #1](https://github.com/agustin-y2k/indicator-insight/pull/1) merged into `develop`. II-7 is Ready.
 **Date:** 2026-09-30.
 
 ## Technical foundation
 
 React/TypeScript frontend, FastAPI backend, PostgreSQL, SQLAlchemy 2.x, initial
-Alembic baseline, development Compose and CI are prepared in II-6.
+Alembic baseline, development Compose and CI are available in `develop` after II-6.
 See `docs/DEVELOPMENT.md` for setup and validation. No scientific/business behavior
-or business tables are implemented. Review and merge remain required.
+or business tables are implemented. The technical foundation is validated and merged.
 
 ## Decisions frozen for start
 - Product working name: Indicator Insight.
@@ -41,8 +41,8 @@ These are deliberate research/implementation decisions, not missing requirements
 M1 Scientific Vertical Slice.
 
 ## First recommended issues
-1. `II-001` Create repository skeleton + CI + Docker dev environment.
-2. `II-002` Define Scenario v1 schema and immutable version model.
-3. `II-003` Implement binary Brier module + reference tests.
-4. `II-004` Implement conceptual assessment + BKT pure functions/tests.
+1. `II-6` Create repository skeleton + CI + Docker dev environment — Done.
+2. `II-7` Define Scenario v1 schema and immutable version model — Ready; next issue, with II-6 completed.
+3. `II-8` Implement binary Brier module + reference tests — Backlog.
+4. `II-9` Implement conceptual assessment + BKT pure functions/tests — Backlog.
 5. `II-005` Build single end-to-end demo scenario without finance API dependency.
