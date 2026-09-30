@@ -1,8 +1,15 @@
 # Project State
 
-**Baseline:** — pre-implementation. 
-**Status:** M0 Thesis Baseline being finalized. 
-**Date:** 2026-09-29.
+**Baseline:** II-6 development infrastructure on `feature/II-6-repository-skeleton`.
+**Status:** M1 technical foundation validated locally and ready for review; not merged.
+**Date:** 2026-09-30.
+
+## Technical foundation
+
+React/TypeScript frontend, FastAPI backend, PostgreSQL, SQLAlchemy 2.x, initial
+Alembic baseline, development Compose and CI are prepared in II-6.
+See `docs/DEVELOPMENT.md` for setup and validation. No scientific/business behavior
+or business tables are implemented. Review and merge remain required.
 
 ## Decisions frozen for start
 - Product working name: Indicator Insight.
