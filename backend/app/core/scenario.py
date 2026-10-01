@@ -101,11 +101,18 @@ class ScenarioVersionRef(Contract):
     content_sha256: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 
 
+class LearnerScenarioRef(Contract):
+    """Public identity only; never derived from private publication content."""
+
+    scenario_id: Text
+    version: PositiveInt
+
+
 class LearnerScenario(Contract):
     """The only contract intended for pre-decision delivery."""
 
     schema_version: Literal[1] = 1
-    reference: ScenarioVersionRef
+    reference: LearnerScenarioRef
     domain: Text
     competencies: Annotated[tuple[Text, ...], Field(min_length=1)]
     difficulty: Difficulty | None = None
@@ -162,20 +169,30 @@ class ScenarioVersion(Contract):
     probability_space: ProbabilitySpace | None = None
     resolution: ResolutionSpec
 
+    def canonical_bytes(self) -> bytes:
+        """V1 internal hash input. Changes require an explicit contract version decision.
+
+        UTF-8 JSON of validated content, UTC instants, all defaults/nulls included,
+        sorted object keys, ordered arrays, unescaped Unicode and compact separators.
+        """
+        return json.dumps(
+            self.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")
+
     @property
     def reference(self) -> ScenarioVersionRef:
-        canonical = json.dumps(
-            self.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), ensure_ascii=False
-        )
         return ScenarioVersionRef(
             scenario_id=self.scenario_id,
             version=self.version,
-            content_sha256=hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            content_sha256=hashlib.sha256(self.canonical_bytes()).hexdigest(),
         )
 
     def learner_view(self) -> LearnerScenario:
         values = self.model_dump(exclude={"scenario_id", "version", "resolution"})
-        return LearnerScenario(reference=self.reference, **values)
+        return LearnerScenario(
+            reference=LearnerScenarioRef(scenario_id=self.scenario_id, version=self.version),
+            **values,
+        )
 
     @model_validator(mode="after")
     def validate_visible(self) -> Self:
@@ -197,3 +214,15 @@ class GroundTruth(Contract):
     reference: ScenarioVersionRef
     outcome_id: Text
     resolved_at: Instant
+
+
+def scenario_contract_schema() -> dict[str, object]:
+    """Generate internal ScenarioVersion schema plus related contract definitions."""
+    schema = ScenarioVersion.model_json_schema()
+    definitions = schema.setdefault("$defs", {})
+    for model in (ScenarioVersionRef, LearnerScenarioRef, LearnerScenario, GroundTruth):
+        related = model.model_json_schema()
+        definitions.update(related.pop("$defs", {}))
+        definitions[model.__name__] = related
+    schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    return schema

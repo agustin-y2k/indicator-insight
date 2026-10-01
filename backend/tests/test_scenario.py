@@ -5,7 +5,12 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from app.core.scenario import GroundTruth, LearnerScenario, ScenarioVersion
+from app.core.scenario import (
+    GroundTruth,
+    LearnerScenario,
+    ScenarioVersion,
+    scenario_contract_schema,
+)
 
 
 def payload():
@@ -212,8 +217,7 @@ def test_empty_unordered_evidence_and_unknown_difficulty():
 def test_schema_matches_implementation_and_core_is_neutral():
     root = Path(__file__).resolve().parents[2]
     schema = json.loads((root / "docs/examples/scenario.schema.json").read_text())
-    expected = ScenarioVersion.model_json_schema()
-    expected["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    expected = scenario_contract_schema()
     assert schema == expected
     for file in (root / "backend/app/core").glob("*.py"):
         source = file.read_text().lower()
@@ -239,3 +243,55 @@ def test_insufficient_outcomes_and_nested_extra_fields():
     data["context"]["ground_truth"] = "hidden"
     with pytest.raises(ValidationError):
         ScenarioVersion.model_validate(data)
+
+
+@pytest.mark.parametrize("private_field", ["rule", "data"])
+def test_private_changes_never_affect_learner_payload(private_field):
+    original = ScenarioVersion.model_validate(payload())
+    data = payload()
+    if private_field == "rule":
+        data["resolution"]["rule"]["description"] = "Another private rule."
+    else:
+        data["resolution"]["data"][0]["text"] = "Another hidden observation."
+    # Controlled reconstruction only; production updates must use next_version().
+    changed = ScenarioVersion.model_validate(data)
+    assert changed.reference != original.reference
+    assert changed.learner_view().reference == original.learner_view().reference
+    assert changed.learner_view().model_dump_json() == original.learner_view().model_dump_json()
+    visible = original.learner_view().model_dump_json()
+    assert json.loads(visible)["reference"] == {"scenario_id": "demo-neutral", "version": 1}
+    for private in (
+        "resolution",
+        "ground_truth",
+        "content_sha256",
+        original.reference.content_sha256,
+    ):
+        assert private not in visible
+    with pytest.raises(ValidationError):
+        LearnerScenario.model_validate(
+            dict(json.loads(visible), reference=original.reference.model_dump())
+        )
+
+
+def test_internal_hash_roundtrip_and_all_timestamp_offsets():
+    original = ScenarioVersion.model_validate(payload())
+    data = payload()
+    data["cutoff_time"] = "2026-01-01T09:00:00-03:00"
+    data["context"]["available_at"] = "2026-01-01T12:00:00+01:00"
+    data["evidence"][0]["available_at"] = "2026-01-01T14:00:00+02:00"
+    data["evidence"][0]["source_available_at"] = ["2026-01-01T07:00:00-03:00"]
+    data["resolution"]["data"][0]["available_at"] = "2026-01-02T09:00:00-03:00"
+    equivalent = ScenarioVersion.model_validate(data)
+    roundtrip = ScenarioVersion.model_validate_json(equivalent.model_dump_json())
+    assert original.canonical_bytes() == equivalent.canonical_bytes() == roundtrip.canonical_bytes()
+    assert original.reference == equivalent.reference == roundtrip.reference
+    assert original.learner_view().model_dump_json() == equivalent.learner_view().model_dump_json()
+
+
+def test_v1_internal_content_hash_golden():
+    # Fixed payload() publication, including defaults and private resolution.
+    # Changes to this expectation require an explicit contract version decision.
+    scenario = ScenarioVersion.model_validate(payload())
+    assert scenario.reference.content_sha256 == (
+        "429392a9e019ca3f180b069829b9d6ecf1dc58463d327ee28db6f54235cbe8f7"
+    )

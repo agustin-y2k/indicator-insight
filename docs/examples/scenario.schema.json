@@ -196,6 +196,165 @@
       ],
       "title": "ResolutionSpec",
       "type": "object"
+    },
+    "ScenarioVersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "scenario_id": {
+          "minLength": 1,
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "version",
+        "content_sha256"
+      ],
+      "title": "ScenarioVersionRef",
+      "type": "object"
+    },
+    "LearnerScenarioRef": {
+      "additionalProperties": false,
+      "description": "Public identity only; never derived from private publication content.",
+      "properties": {
+        "scenario_id": {
+          "minLength": 1,
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "version"
+      ],
+      "title": "LearnerScenarioRef",
+      "type": "object"
+    },
+    "LearnerScenario": {
+      "additionalProperties": false,
+      "description": "The only contract intended for pre-decision delivery.",
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "reference": {
+          "$ref": "#/$defs/LearnerScenarioRef"
+        },
+        "domain": {
+          "minLength": 1,
+          "title": "Domain",
+          "type": "string"
+        },
+        "competencies": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Competencies",
+          "type": "array"
+        },
+        "difficulty": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Difficulty"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cutoff_time": {
+          "format": "date-time",
+          "title": "Cutoff Time",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/AvailableText"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "alternatives": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Alternative"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "probability_space": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProbabilitySpace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "reference",
+        "domain",
+        "competencies",
+        "cutoff_time",
+        "context",
+        "evidence"
+      ],
+      "title": "LearnerScenario",
+      "type": "object"
+    },
+    "GroundTruth": {
+      "additionalProperties": false,
+      "description": "Private resolution result; access control/decision locking are not implemented here.",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/ScenarioVersionRef"
+        },
+        "outcome_id": {
+          "minLength": 1,
+          "title": "Outcome Id",
+          "type": "string"
+        },
+        "resolved_at": {
+          "format": "date-time",
+          "title": "Resolved At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "outcome_id",
+        "resolved_at"
+      ],
+      "title": "GroundTruth",
+      "type": "object"
     }
   },
   "additionalProperties": false,

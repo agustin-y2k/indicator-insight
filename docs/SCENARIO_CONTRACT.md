@@ -2,7 +2,10 @@
 
 `backend/app/core/scenario.py` is the executable domain-neutral contract.
 `docs/examples/scenario.schema.json` is generated from
-`ScenarioVersion.model_json_schema()` (JSON Schema draft 2020-12). The former
+`scenario_contract_schema()` (JSON Schema draft 2020-12), rooted in
+`ScenarioVersion.model_json_schema()`; its `$defs`
+also include generated schemas for `ScenarioVersionRef`, `LearnerScenarioRef`,
+`LearnerScenario` and `GroundTruth` from their respective models. The former
 illustrative schema is replaced; no application consumer used it. JSON Schema
 expresses structural constraints; cross-field temporal comparisons, uniqueness
 and timezone normalization are enforced by Python validation.
@@ -27,9 +30,10 @@ and timezone normalization are enforced by Python validation.
 - `ResolutionRule`: private `rule_id`, `rule_version`, `description`.
   `ResolutionSpec` holds that rule and private evidence `data`; future timestamps
   are allowed there. Interpretation belongs to adapters.
-- `ScenarioVersionRef`: scenario ID, version number and content SHA-256.
+- `ScenarioVersionRef`: internal scenario ID, version number and content SHA-256.
+- `LearnerScenarioRef`: public scenario ID and version number only, without hashes.
 - `LearnerScenario`: explicit allowlisted visible fields and version reference;
-  no resolution rule, private data or ground truth.
+  no resolution rule, private data, ground truth or private-derived digest.
 - `GroundTruth`: separate private result with exact version reference,
   `outcome_id` and timezone-aware `resolved_at`. It describes a result, does not
   execute resolution or authorize disclosure. Outcome membership, decision lock
@@ -62,12 +66,23 @@ Updates through `model_copy(update=...)` are rejected because they bypass valida
 As with other Python validation models, low-level reflection or `model_construct`
 are trusted-code escape hatches and must never ingest external/unvalidated input.
 
-`reference` hashes the entire validated internal version, including resolution
+`reference` is internal only. `canonical_bytes()` defines the hash input and
+preserves the original v1 byte representation. It hashes the entire validated
+internal version, including resolution
 specification, with SHA-256 over UTF-8 JSON, sorted object keys, no insignificant
 whitespace, explicit default/null fields and UTC instants. Array ordering remains
 significant. Round-trip serialization and equivalent timezone representations
 preserve the reference. This digest algorithm is part of v1; changing it requires
 an explicit contract revision. It identifies content, not authorship or signatures.
+A fixed golden fixture and expected SHA-256 in `test_scenario.py` detect accidental
+serialization drift. Deliberate canonicalization changes require an explicit
+contract versioning decision, including dependency-induced serialization changes.
+
+`learner_view()` constructs `LearnerScenarioRef` directly from scenario ID and
+version, without computing or exposing the internal digest. A controlled
+reconstruction changing only resolution changes the internal reference but leaves
+the entire learner-visible payload byte-for-byte identical. This test does not
+permit overwriting publications: normal content changes still create a new version.
 
 `next_version(**changes)` preserves scenario identity, increments the version
 number and validates all replacement content. Never overwrite an existing
@@ -108,3 +123,9 @@ cutoff boundaries, timezone equivalence/naive rejection, declared future inputs,
 immutability, version references, private serialization, invalid structures and
 absence of domain-specific imports/fields. These tests run in the existing backend
 CI job; a failed temporal assertion fails CI.
+
+Regenerate the single schema artifact from `backend`:
+
+```sh
+.venv/bin/python -c 'import json; from pathlib import Path; from app.core.scenario import scenario_contract_schema; Path("../docs/examples/scenario.schema.json").write_text(json.dumps(scenario_contract_schema(), indent=2) + "\n")'
+```
