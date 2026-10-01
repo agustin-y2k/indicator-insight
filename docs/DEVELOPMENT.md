@@ -7,7 +7,8 @@ métricas, modelos del aprendiz, adaptación, adapters o autenticación.
 
 `backend/app/core` se reserva para contratos y lógica independientes de dominio e
 infraestructura. `modules` alojará los módulos de aplicación; `adapters` las
-implementaciones de dominio. Hoy sólo contienen marcadores de paquete.
+implementaciones de dominio. `core/scenario.py` define el contrato neutral
+[Scenario v1](SCENARIO_CONTRACT.md); `modules` y `adapters` conservan marcadores de paquete.
 `api` contiene health checks y `db` la base declarativa y creación del engine.
 No se agregan paquetes finance ni entidades anticipadas.
 

@@ -1,5 +1,9 @@
 # Scenario Replay and Temporal Safety
 
+El contrato ejecutable y sus límites actuales están en
+[Scenario v1](SCENARIO_CONTRACT.md). II-7 valida disponibilidad declarada;
+el guard completo y el replay siguen pendientes.
+
 ## Modelo temporal
 Cada escenario histórico fija:
 - `cutoff_time = t0`: último instante visible al usuario.
